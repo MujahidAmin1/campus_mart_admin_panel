@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 class DeliveryWidget extends StatelessWidget {
   final String productName;
+  final String orderId;
   final DateTime timestamp;
   final VoidCallback onItemDropped;
   final VoidCallback onItemReceived;
@@ -10,6 +11,7 @@ class DeliveryWidget extends StatelessWidget {
   const DeliveryWidget({
     super.key,
     required this.productName,
+    required this.orderId,
     required this.timestamp,
     required this.onItemDropped,
     required this.onItemReceived,
@@ -64,6 +66,15 @@ class DeliveryWidget extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: MyColors.darkBase,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Order ID: $orderId',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: MyColors.purpleShade,
                   ),
                 ),
                 const SizedBox(height: 4),

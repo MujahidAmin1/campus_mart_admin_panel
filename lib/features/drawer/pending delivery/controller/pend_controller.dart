@@ -1,0 +1,56 @@
+
+import 'package:campus_mart_admin/features/drawer/pending%20delivery/repo/pend_repo.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
+
+final pendingDeliveryProvider = StreamProvider.autoDispose<List<Map<String, dynamic>>>((ref) {
+  final repo = ref.watch(pendingRepo);
+  return repo.fetchPendingDeliveries();
+});
+
+// Search query provider
+final searchQueryProvider = StateProvider<String>((ref) => '');
+
+// Filtered pending deliveries based on search query
+final filteredPendingDeliveriesProvider = Provider.autoDispose<AsyncValue<List<Map<String, dynamic>>>>((ref) {
+  final ordersAsync = ref.watch(pendingDeliveryProvider);
+  final searchQuery = ref.watch(searchQueryProvider);
+
+  return ordersAsync.whenData((orders) {
+    if (searchQuery.isEmpty) {
+      return orders;
+    }
+    
+    // Filter by last 5 digits of order ID
+    return orders.where((order) {
+      final orderId = order['orderId'] as String;
+      final last5Digits = orderId.length >= 5 
+          ? orderId.substring(orderId.length - 5) 
+          : orderId;
+      return last5Digits.toLowerCase().contains(searchQuery.toLowerCase());
+    }).toList();
+  });
+});
+
+class PendingDeliveryController {
+  final PendingDeliveryRepo repo;
+
+  PendingDeliveryController(this.repo);
+
+  Future<void> markAsDropped(String orderId) async {
+    await repo.updateStatusToDropped(orderId);
+  }
+
+  Future<void> markAsReceived(String orderId) async {
+    await repo.updateStatusToCollected(orderId);
+  }
+
+  Future<Map<String, dynamic>?> getProductDetails(String productId) async {
+    return await repo.fetchProductById(productId);
+  }
+}
+
+final pendingDeliveryControllerProvider = Provider((ref) {
+  final repo = ref.watch(pendingRepo);
+  return PendingDeliveryController(repo);
+});
