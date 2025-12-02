@@ -11,24 +11,24 @@ final pendingDeliveryProvider = StreamProvider.autoDispose<List<Map<String, dyna
 // Search query provider
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
-// Filtered pending deliveries based on search query
+// Filtered pending deliveries based on search query only
 final filteredPendingDeliveriesProvider = Provider.autoDispose<AsyncValue<List<Map<String, dynamic>>>>((ref) {
   final ordersAsync = ref.watch(pendingDeliveryProvider);
   final searchQuery = ref.watch(searchQueryProvider);
 
   return ordersAsync.whenData((orders) {
-    if (searchQuery.isEmpty) {
-      return orders;
+    // Apply search filter only
+    if (searchQuery.isNotEmpty) {
+      return orders.where((order) {
+        final orderId = order['orderId'] as String;
+        final last5Digits = orderId.length >= 5 
+            ? orderId.substring(orderId.length - 5) 
+            : orderId;
+        return last5Digits.toLowerCase().contains(searchQuery.toLowerCase());
+      }).toList();
     }
     
-    // Filter by last 5 digits of order ID
-    return orders.where((order) {
-      final orderId = order['orderId'] as String;
-      final last5Digits = orderId.length >= 5 
-          ? orderId.substring(orderId.length - 5) 
-          : orderId;
-      return last5Digits.toLowerCase().contains(searchQuery.toLowerCase());
-    }).toList();
+    return orders;
   });
 });
 

@@ -5,6 +5,7 @@ class DeliveryWidget extends StatelessWidget {
   final String productName;
   final String orderId;
   final DateTime timestamp;
+  final String status;
   final VoidCallback onItemDropped;
   final VoidCallback onItemReceived;
 
@@ -13,6 +14,7 @@ class DeliveryWidget extends StatelessWidget {
     required this.productName,
     required this.orderId,
     required this.timestamp,
+    required this.status,
     required this.onItemDropped,
     required this.onItemReceived,
   });
@@ -106,12 +108,12 @@ class DeliveryWidget extends StatelessWidget {
             children: [
               // Item Dropped button
               ElevatedButton.icon(
-                onPressed: onItemDropped,
+                onPressed: (status == 'shipped' || status == 'completed') ? null : onItemDropped,
                 icon: const Icon(Icons.local_shipping, size: 18),
                 label: const Text('Dropped'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange.shade50,
-                  foregroundColor: Colors.orange.shade700,
+                  backgroundColor: (status == 'shipped' || status == 'completed') ? Colors.grey.shade200 : Colors.orange.shade50,
+                  foregroundColor: (status == 'shipped' || status == 'completed') ? Colors.grey.shade400 : Colors.orange.shade700,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -120,22 +122,24 @@ class DeliveryWidget extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                     side: BorderSide(
-                      color: Colors.orange.shade200,
+                      color: (status == 'shipped' || status == 'completed') ? Colors.grey.shade300 : Colors.orange.shade200,
                       width: 1,
                     ),
                   ),
+                  disabledBackgroundColor: Colors.grey.shade200,
+                  disabledForegroundColor: Colors.grey.shade400,
                 ),
               ),
               const SizedBox(width: 12),
               
               // Item Received button
               ElevatedButton.icon(
-                onPressed: onItemReceived,
+                onPressed: status == 'completed' ? null : onItemReceived,
                 icon: const Icon(Icons.check_circle, size: 18),
                 label: const Text('Received'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green.shade50,
-                  foregroundColor: Colors.green.shade700,
+                  backgroundColor: status == 'completed' ? Colors.grey.shade200 : Colors.green.shade50,
+                  foregroundColor: status == 'completed' ? Colors.grey.shade400 : Colors.green.shade700,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -144,10 +148,12 @@ class DeliveryWidget extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                     side: BorderSide(
-                      color: Colors.green.shade200,
+                      color: status == 'completed' ? Colors.grey.shade300 : Colors.green.shade200,
                       width: 1,
                     ),
                   ),
+                  disabledBackgroundColor: Colors.grey.shade200,
+                  disabledForegroundColor: Colors.grey.shade400,
                 ),
               ),
             ],
@@ -174,3 +180,9 @@ class DeliveryWidget extends StatelessWidget {
     }
   }
 }
+
+
+
+
+
+

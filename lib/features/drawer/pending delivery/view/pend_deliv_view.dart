@@ -145,6 +145,7 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
                     final orderId = order['orderId'] as String;
                     final productId = order['productId'] as String? ?? '';
                     final orderDate = (order['orderDate'] as Timestamp?)?.toDate() ?? DateTime.now();
+                    final status = order['status'] as String? ?? 'paid';
                     final last5Digits = orderId.length >= 5 
                         ? orderId.substring(orderId.length - 5) 
                         : orderId;
@@ -158,6 +159,7 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
                           productName: productName,
                           orderId: last5Digits,
                           timestamp: orderDate,
+                          status: status,
                           onItemDropped: () async {
                             try {
                               await controller.markAsDropped(orderId);

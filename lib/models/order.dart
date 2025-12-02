@@ -16,7 +16,6 @@ enum OrderStatus {
   processing,
   paid,
   shipped,
-  collected,
   cancelled,
   completed,
 }
@@ -67,13 +66,14 @@ class Order {
       orderId: orderId ?? this.orderId,
       productId: productId ?? this.productId,
       buyerId: buyerId ?? this.buyerId,
-      amount: amount ?? this.amount,
+      amount: totalAmount ?? amount,
       sellerId: sellerId ?? this.sellerId,
       status: status ?? this.status,
       orderDate: orderDate ?? this.orderDate,
       deliveryAddress: deliveryAddress ?? this.deliveryAddress,
       paymentId: paymentId ?? this.paymentId,
       hasCollectedItem: hasCollectedItem ?? this.hasCollectedItem,
+      isShippingConfirmed: isShippingConfirmed ?? this.isShippingConfirmed,
       recievedAt: recievedAt ?? this.recievedAt,
     );
   }

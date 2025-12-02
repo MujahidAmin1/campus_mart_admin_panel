@@ -62,16 +62,18 @@ class PendingDeliveryRepo {
     }
   }
 
-  /// Update order status to "collected" when buyer picks up the item
+  /// Update order status to "completed" when buyer picks up the item
+  /// Now directly marks as completed instead of collected
   Future<void> updateStatusToCollected(String orderId) async {
     try {
       await firestore.collection('orders').doc(orderId).update({
-        'status': 'collected',
+        'status': 'completed',
         'hasCollectedItem': true,
         'recievedAt': Timestamp.now(),
+        'completedAt': Timestamp.now(),
       });
     } catch (e) {
-      throw Exception('Error updating order to collected: $e');
+      throw Exception('Error updating order to completed: $e');
     }
   }
 }
