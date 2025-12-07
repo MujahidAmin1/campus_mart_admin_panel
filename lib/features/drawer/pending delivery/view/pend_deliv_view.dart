@@ -41,11 +41,70 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
   @override
   Widget build(BuildContext context) {
     final filteredDeliveriesAsync = ref.watch(filteredPendingDeliveriesProvider);
+    final inflowOutflowAsync = ref.watch(inflowOutflowProvider);
     final controller = ref.watch(pendingDeliveryControllerProvider);
 
     return Scaffold(
       body: Column(
         children: [
+          // Inflow/Outflow Statistics Section
+          inflowOutflowAsync.when(
+            data: (stats) {
+              final inflow = stats['inflow'] ?? 0.0;
+              final outflow = stats['outflow'] ?? 0.0;
+              final pending = stats['pending'] ?? 0.0;
+
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        title: 'Inflow',
+                        amount: inflow,
+                        icon: Icons.arrow_downward,
+                        color: Colors.green,
+                        subtitle: 'Total paid',
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard(
+                        title: 'Outflow',
+                        amount: outflow,
+                        icon: Icons.arrow_upward,
+                        color: MyColors.purpleShade,
+                        subtitle: 'Released',
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard(
+                        title: 'Pending',
+                        amount: pending,
+                        icon: Icons.pending_actions,
+                        color: Colors.orange,
+                        subtitle: 'To release',
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+            loading: () => const SizedBox(height: 100),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
+
           // Search Bar
           Container(
             padding: const EdgeInsets.all(16),
@@ -182,13 +241,35 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
                               }
                             }
                           },
-                          onItemReceived: () async {
+                          onItemCollected: () async {
                             try {
-                              await controller.markAsReceived(orderId);
+                              await controller.markAsCollected(orderId);
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text('Order marked as collected'),
+                                    backgroundColor: Colors.blue,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Error: $e'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          onPaymentReleased: () async {
+                            try {
+                              await controller.releasePayment(orderId);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Payment released - Order completed'),
                                     backgroundColor: Colors.green,
                                   ),
                                 );
@@ -245,6 +326,69 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
                   ],
                 ),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard({
+    required String title,
+    required double amount,
+    required IconData icon,
+    required Color color,
+    required String subtitle,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const Spacer(),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '₦${amount.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: MyColors.darkBase,
+            ),
+          ),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
             ),
           ),
         ],

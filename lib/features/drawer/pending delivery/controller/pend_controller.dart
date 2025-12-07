@@ -8,6 +8,12 @@ final pendingDeliveryProvider = StreamProvider.autoDispose<List<Map<String, dyna
   return repo.fetchPendingDeliveries();
 });
 
+// Inflow/Outflow statistics provider
+final inflowOutflowProvider = StreamProvider.autoDispose<Map<String, double>>((ref) {
+  final repo = ref.watch(pendingRepo);
+  return repo.fetchInflowOutflow();
+});
+
 // Search query provider
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
@@ -41,8 +47,12 @@ class PendingDeliveryController {
     await repo.updateStatusToDropped(orderId);
   }
 
-  Future<void> markAsReceived(String orderId) async {
+  Future<void> markAsCollected(String orderId) async {
     await repo.updateStatusToCollected(orderId);
+  }
+
+  Future<void> releasePayment(String orderId) async {
+    await repo.releasePayment(orderId);
   }
 
   Future<Map<String, dynamic>?> getProductDetails(String productId) async {

@@ -17,13 +17,13 @@ class PendingDeliveryRepo {
 
   PendingDeliveryRepo({required this.firestore, required this.firebaseAuth});
 
-  /// Fetch all orders with "paid" or "shipped" status (admin panel - pending deliveries)
-  /// Orders remain visible after "Dropped" is clicked, only disappear when "Received" is clicked
+  /// Fetch all orders with "paid", "shipped", or "collected" status (admin panel - pending deliveries)
+  /// Orders remain visible until payment is released (status becomes "completed")
   Stream<List<Map<String, dynamic>>> fetchPendingDeliveries() {
     try {
       return firestore
           .collection('orders')
-          .where('status', whereIn: ['paid', 'shipped'])
+          .where('status', whereIn: ['paid', 'shipped', 'collected'])
           .snapshots()
           .map((snapshot) {
         return snapshot.docs.map((doc) {
@@ -50,6 +50,45 @@ class PendingDeliveryRepo {
     }
   }
 
+  /// Fetch inflow and outflow statistics
+  /// Inflow: Total amount of all paid orders (paid, shipped, collected, completed)
+  /// Outflow: Total amount of completed orders (payment released to sellers)
+  Stream<Map<String, double>> fetchInflowOutflow() {
+    try {
+      return firestore
+          .collection('orders')
+          .snapshots()
+          .map((snapshot) {
+        double inflow = 0.0;
+        double outflow = 0.0;
+
+        for (var doc in snapshot.docs) {
+          final data = doc.data();
+          final status = data['status'] as String?;
+          final amount = (data['amount'] as num?)?.toDouble() ?? 0.0;
+
+          // Inflow: all orders that have been paid
+          if (status == 'paid' || status == 'shipped' || status == 'collected' || status == 'completed') {
+            inflow += amount;
+          }
+
+          // Outflow: only completed orders (payment released)
+          if (status == 'completed') {
+            outflow += amount;
+          }
+        }
+
+        return {
+          'inflow': inflow,
+          'outflow': outflow,
+          'pending': inflow - outflow,
+        };
+      });
+    } catch (e) {
+      throw Exception('Error fetching inflow/outflow: $e');
+    }
+  }
+
   /// Update order status to "shipped" when seller drops/delivers the item
   Future<void> updateStatusToDropped(String orderId) async {
     try {
@@ -62,18 +101,28 @@ class PendingDeliveryRepo {
     }
   }
 
-  /// Update order status to "completed" when buyer picks up the item
-  /// Now directly marks as completed instead of collected
+  /// Update order status to "collected" when buyer picks up the item
   Future<void> updateStatusToCollected(String orderId) async {
     try {
       await firestore.collection('orders').doc(orderId).update({
-        'status': 'completed',
+        'status': 'collected',
         'hasCollectedItem': true,
         'recievedAt': Timestamp.now(),
+      });
+    } catch (e) {
+      throw Exception('Error updating order to collected: $e');
+    }
+  }
+
+  /// Release payment to seller - marks order as completed
+  Future<void> releasePayment(String orderId) async {
+    try {
+      await firestore.collection('orders').doc(orderId).update({
+        'status': 'completed',
         'completedAt': Timestamp.now(),
       });
     } catch (e) {
-      throw Exception('Error updating order to completed: $e');
+      throw Exception('Error releasing payment: $e');
     }
   }
 }

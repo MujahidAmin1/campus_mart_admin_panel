@@ -7,7 +7,8 @@ class DeliveryWidget extends StatelessWidget {
   final DateTime timestamp;
   final String status;
   final VoidCallback onItemDropped;
-  final VoidCallback onItemReceived;
+  final VoidCallback onItemCollected;
+  final VoidCallback onPaymentReleased;
 
   const DeliveryWidget({
     super.key,
@@ -16,7 +17,8 @@ class DeliveryWidget extends StatelessWidget {
     required this.timestamp,
     required this.status,
     required this.onItemDropped,
-    required this.onItemReceived,
+    required this.onItemCollected,
+    required this.onPaymentReleased,
   });
 
   @override
@@ -73,7 +75,7 @@ class DeliveryWidget extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'Order ID: $orderId',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                     color: MyColors.purpleShade,
@@ -108,12 +110,12 @@ class DeliveryWidget extends StatelessWidget {
             children: [
               // Item Dropped button
               ElevatedButton.icon(
-                onPressed: (status == 'shipped' || status == 'completed') ? null : onItemDropped,
+                onPressed: status == 'paid' ? onItemDropped : null,
                 icon: const Icon(Icons.local_shipping, size: 18),
                 label: const Text('Dropped'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: (status == 'shipped' || status == 'completed') ? Colors.grey.shade200 : Colors.orange.shade50,
-                  foregroundColor: (status == 'shipped' || status == 'completed') ? Colors.grey.shade400 : Colors.orange.shade700,
+                  backgroundColor: status == 'paid' ? Colors.orange.shade50 : Colors.grey.shade200,
+                  foregroundColor: status == 'paid' ? Colors.orange.shade700 : Colors.grey.shade400,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -122,7 +124,7 @@ class DeliveryWidget extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                     side: BorderSide(
-                      color: (status == 'shipped' || status == 'completed') ? Colors.grey.shade300 : Colors.orange.shade200,
+                      color: status == 'paid' ? Colors.orange.shade200 : Colors.grey.shade300,
                       width: 1,
                     ),
                   ),
@@ -132,14 +134,14 @@ class DeliveryWidget extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               
-              // Item Received button
+              // Item Collected button
               ElevatedButton.icon(
-                onPressed: status == 'completed' ? null : onItemReceived,
+                onPressed: status == 'shipped' ? onItemCollected : null,
                 icon: const Icon(Icons.check_circle, size: 18),
-                label: const Text('Received'),
+                label: const Text('Collected'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: status == 'completed' ? Colors.grey.shade200 : Colors.green.shade50,
-                  foregroundColor: status == 'completed' ? Colors.grey.shade400 : Colors.green.shade700,
+                  backgroundColor: status == 'shipped' ? Colors.blue.shade50 : Colors.grey.shade200,
+                  foregroundColor: status == 'shipped' ? Colors.blue.shade700 : Colors.grey.shade400,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -148,7 +150,33 @@ class DeliveryWidget extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                     side: BorderSide(
-                      color: status == 'completed' ? Colors.grey.shade300 : Colors.green.shade200,
+                      color: status == 'shipped' ? Colors.blue.shade200 : Colors.grey.shade300,
+                      width: 1,
+                    ),
+                  ),
+                  disabledBackgroundColor: Colors.grey.shade200,
+                  disabledForegroundColor: Colors.grey.shade400,
+                ),
+              ),
+              const SizedBox(width: 12),
+              
+              // Release Payment button
+              ElevatedButton.icon(
+                onPressed: status == 'collected' ? onPaymentReleased : null,
+                icon: const Icon(Icons.payments, size: 18),
+                label: const Text('Release'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: status == 'collected' ? Colors.green.shade50 : Colors.grey.shade200,
+                  foregroundColor: status == 'collected' ? Colors.green.shade700 : Colors.grey.shade400,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: BorderSide(
+                      color: status == 'collected' ? Colors.green.shade200 : Colors.grey.shade300,
                       width: 1,
                     ),
                   ),
