@@ -124,7 +124,7 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
                 ref.read(searchQueryProvider.notifier).state = value;
               },
               decoration: InputDecoration(
-                hintText: 'Search by last 5 digits of Order ID...',
+                hintText: 'Search by Order ID...',
                 prefixIcon: const Icon(Icons.search, color: MyColors.purpleShade),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(

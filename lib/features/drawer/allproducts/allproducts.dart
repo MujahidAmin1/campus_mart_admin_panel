@@ -1,5 +1,7 @@
 import 'package:campus_mart_admin/core/utils/my_colors.dart';
 import 'package:campus_mart_admin/features/drawer/controller/draw_controller.dart';
+import 'package:campus_mart_admin/features/drawer/allproducts/product_detail_screen.dart';
+import 'package:campus_mart_admin/models/product.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -70,13 +72,13 @@ class AllProductsScreen extends ConsumerWidget {
   }
 }
 
-class _ProductCard extends StatelessWidget {
-  final dynamic product;
+class _ProductCard extends ConsumerWidget {
+  final Product product;
 
   const _ProductCard({required this.product});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -106,8 +108,8 @@ class _ProductCard extends StatelessWidget {
             child: product.imageUrls.isNotEmpty
                 ? Image.network(
                     product.imageUrls[0],
-                    width: 120,
-                    height: 120,
+                    width: 100,
+                    height: 100,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return _buildPlaceholderImage();
@@ -122,59 +124,27 @@ class _ProductCard extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Title and Availability Badge
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          product.title,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: MyColors.darkBase,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      _buildAvailabilityBadge(product.isAvailable),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Description
+                  // Title
                   Text(
-                    product.description,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade700,
-                      height: 1.4,
+                    product.title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: MyColors.darkBase,
                     ),
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 12),
 
-                  // Category and Date
+                  // Category and Availability
                   Row(
                     children: [
                       _buildCategoryChip(product.category),
-                      const SizedBox(width: 12),
-                      Icon(
-                        Icons.calendar_today,
-                        size: 14,
-                        color: Colors.grey.shade600,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _formatDate(product.datePosted),
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
+                      const SizedBox(width: 8),
+                      _buildAvailabilityBadge(product.isAvailable),
                     ],
                   ),
                 ],
@@ -216,7 +186,12 @@ class _ProductCard extends StatelessWidget {
                   children: [
                     IconButton(
                       onPressed: () {
-                        // TODO: Implement view details
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductDetailScreen(product: product),
+                          ),
+                        );
                       },
                       icon: const Icon(Icons.visibility_outlined),
                       tooltip: 'View Details',
@@ -226,21 +201,10 @@ class _ProductCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: () {
-                        // TODO: Implement edit
-                      },
-                      icon: const Icon(Icons.edit_outlined),
-                      tooltip: 'Edit Product',
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.orange.shade50,
-                        foregroundColor: Colors.orange.shade700,
-                      ),
-                    ),
                     const SizedBox(width: 8),
                     IconButton(
                       onPressed: () {
-                        // TODO: Implement delete
+                        ref.read(productContProvider.notifier).deleteProduct(product.productId);
                       },
                       icon: const Icon(Icons.delete_outline),
                       tooltip: 'Delete Product',
@@ -261,12 +225,12 @@ class _ProductCard extends StatelessWidget {
 
   Widget _buildPlaceholderImage() {
     return Container(
-      width: 120,
-      height: 120,
+      width: 100,
+      height: 100,
       color: Colors.grey.shade200,
       child: Icon(
         Icons.inventory_2_outlined,
-        size: 50,
+        size: 40,
         color: Colors.grey.shade400,
       ),
     );

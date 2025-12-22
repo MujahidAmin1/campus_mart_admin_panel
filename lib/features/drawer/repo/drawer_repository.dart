@@ -27,4 +27,7 @@ class ProductsRepository {
       throw Exception('Error fetching products: $e');
     }
   }
+  Future deleteProduct(String id)async{
+    await firestore.collection('products').doc(id).delete();
+  }
 }

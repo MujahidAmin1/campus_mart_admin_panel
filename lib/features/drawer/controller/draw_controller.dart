@@ -19,4 +19,7 @@ class ProductController extends  StreamNotifier<List<Product>> {
   Stream<List<Product>> fetchProducts() {
     return productsRepository.fetchAllProducts();
   }
+  Future deleteProduct(String id)async{
+   await productsRepository.deleteProduct(id);
+  }
 }
