@@ -66,167 +66,227 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xff6CEFBD).withOpacity(0.15),
-              Colors.white,
-              Color(0xff8E6CEF).withOpacity(0.1),
+              Color(0xff8E6CEF), // Purple
+              Color(0xff6CEFBD), // Teal
             ],
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  spacing: 15,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 40),
-                    Center(
-                      child: Container(
-                        padding: EdgeInsets.all(15),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Color(0xff8E6CEF), Color(0xff6CEFBD)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+          child: Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 480),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Logo and branding
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
                           ),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color(0xff8E6CEF).withOpacity(0.3),
-                              blurRadius: 15,
-                              offset: Offset(0, 5),
-                            ),
-                          ],
+                          child: Icon(
+                            Icons.admin_panel_settings,
+                            size: 64,
+                            color: Color(0xff8E6CEF),
+                          ),
                         ),
-                        child: Icon(
-                          Icons.admin_panel_settings,
-                          size: 50,
-                          color: Colors.white,
+                        const SizedBox(height: 32),
+                        
+                        // Title
+                        Text(
+                          "BUK CampusMart Admin",
+                          style: kTextStyle(
+                            color: Colors.white,
+                            size: 32,
+                            isBold: true,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Center(
-                        child: Text("CampusMart Admin",
-                            style: kTextStyle(color: Color(0xff3A2770), size: 26, isBold: true))),
-                    Center(
-                        child: Text("Web Administration Portal",
-                            style: kTextStyle(color: Color(0xff3A2770).withOpacity(0.6), size: 16))),
-                    const SizedBox(height: 30),
-                    Center(
-                        child: Text("Admin Login",
-                            style: kTextStyle(size: 28, isBold: true, color: Color(0xff3A2770)))),
-                    const SizedBox(height: 10),
-                    Card(
-                      elevation: 8,
-                      shadowColor: Color(0xff8E6CEF).withOpacity(0.3),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(
-                          color: Color(0xff6CEFBD).withOpacity(0.3),
-                          width: 1.5,
+                        const SizedBox(height: 8),
+                        Text(
+                          "Web Administration Portal",
+                          style: kTextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            size: 16,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          spacing: 18,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            TextFormField(
-                              controller: emailController,
-                              cursorColor: Color(0xff8E6CEF),
-                              decoration: InputDecoration(
-                                prefixIcon: Icon(Icons.email_outlined, color: Color(0xff8E6CEF)),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Color(0xff8E6CEF), width: 2),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
-                                ),
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.red.shade300),
-                                ),
-                                focusedErrorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.red, width: 2),
-                                ),
-                                filled: true,
-                                fillColor: Colors.grey.shade50,
-                                hintText: "Email",
-                                hintStyle: TextStyle(color: Colors.grey.shade400),
+                        const SizedBox(height: 48),
+                        
+                        // Login Card with glassmorphism
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.95),
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 30,
+                                offset: const Offset(0, 15),
                               ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your email';
-                                } else if (!value.contains('@')) {
-                                  return 'Enter a valid email';
-                                }
-                                return null;
-                              },
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(32),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Text(
+                                  "Sign In",
+                                  style: kTextStyle(
+                                    size: 24,
+                                    isBold: true,
+                                    color: Color(0xff3A2770),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 32),
+                                
+                                // Email Field
+                                TextFormField(
+                                  controller: emailController,
+                                  cursorColor: Color(0xff8E6CEF),
+                                  style: kTextStyle(size: 16, color: Color(0xff3A2770)),
+                                  decoration: InputDecoration(
+                                    prefixIcon: Icon(
+                                      Icons.email_outlined,
+                                      color: Color(0xff8E6CEF),
+                                    ),
+                                    labelText: "Email Address",
+                                    labelStyle: TextStyle(color: Colors.grey.shade600),
+                                    floatingLabelStyle: TextStyle(color: Color(0xff8E6CEF)),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide(
+                                        color: Color(0xff8E6CEF),
+                                        width: 2,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.shade300,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide(
+                                        color: Colors.red.shade400,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide(
+                                        color: Colors.red,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.grey.shade50,
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter your email';
+                                    } else if (!value.contains('@')) {
+                                      return 'Enter a valid email';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 24),
+                                
+                                // Password Field
+                                TextFormField(
+                                  controller: passwordController,
+                                  obscureText: true,
+                                  cursorColor: Color(0xff8E6CEF),
+                                  style: kTextStyle(size: 16, color: Color(0xff3A2770)),
+                                  decoration: InputDecoration(
+                                    prefixIcon: Icon(
+                                      Icons.lock_outline,
+                                      color: Color(0xff8E6CEF),
+                                    ),
+                                    labelText: "Password",
+                                    labelStyle: TextStyle(color: Colors.grey.shade600),
+                                    floatingLabelStyle: TextStyle(color: Color(0xff8E6CEF)),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide(
+                                        color: Color(0xff8E6CEF),
+                                        width: 2,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.shade300,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide(
+                                        color: Colors.red.shade400,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide(
+                                        color: Colors.red,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.grey.shade50,
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter a password';
+                                    } else if (value.length < 6) {
+                                      return 'Password must be at least 6 characters';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 32),
+                                
+                                // Submit Button
+                                buildSubmitButton(
+                                  false,
+                                  authstate,
+                                  () async {
+                                    if (_formKey.currentState!.validate()) {
+                                      final authcontroller = ref.read(authControllerProvider.notifier);
+                                      await authcontroller.login(
+                                        emailController.text.trim(),
+                                        passwordController.text.trim(),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
                             ),
-                            TextFormField(
-                              controller: passwordController,
-                              obscureText: true,
-                              cursorColor: Color(0xff8E6CEF),
-                              decoration: InputDecoration(
-                                prefixIcon: Icon(Icons.lock_outline, color: Color(0xff8E6CEF)),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Color(0xff8E6CEF), width: 2),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
-                                ),
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.red.shade300),
-                                ),
-                                focusedErrorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.red, width: 2),
-                                ),
-                                filled: true,
-                                fillColor: Colors.grey.shade50,
-                                hintText: "Password",
-                                hintStyle: TextStyle(color: Colors.grey.shade400),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter a password';
-                                } else if (value.length < 6) {
-                                  return 'Password must be at least 6 characters';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 10),
-                            buildSubmitButton(
-                              false, // Always false since this is login only
-                              authstate, 
-                              () async {
-                                if (_formKey.currentState!.validate()) {
-                                  final authcontroller = ref.read(authControllerProvider.notifier);
-                                  await authcontroller.login(
-                                    emailController.text.trim(),
-                                    passwordController.text.trim(),
-                                  );
-                                }
-                              }
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                  ],
+                  ),
                 ),
               ),
             ),

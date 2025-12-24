@@ -27,10 +27,10 @@ final filteredPendingDeliveriesProvider = Provider.autoDispose<AsyncValue<List<M
     if (searchQuery.isNotEmpty) {
       return orders.where((order) {
         final orderId = order['orderId'] as String;
-        final last5Digits = orderId.length >= 5 
-            ? orderId.substring(orderId.length - 5) 
-            : orderId;
-        return last5Digits.toLowerCase().contains(searchQuery.toLowerCase());
+        final first6Chars = orderId.length >= 6
+          ? orderId.substring(0, 6)
+          : orderId;
+        return first6Chars.toLowerCase().contains(searchQuery.toLowerCase());
       }).toList();
     }
     

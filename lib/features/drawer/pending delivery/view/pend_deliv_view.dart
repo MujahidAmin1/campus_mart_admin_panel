@@ -9,7 +9,8 @@ class PendingDeliveryView extends ConsumerStatefulWidget {
   const PendingDeliveryView({super.key});
 
   @override
-  ConsumerState<PendingDeliveryView> createState() => _PendingDeliveryViewState();
+  ConsumerState<PendingDeliveryView> createState() =>
+      _PendingDeliveryViewState();
 }
 
 class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
@@ -31,16 +32,18 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
     // Fetch from Firestore
     final controller = ref.read(pendingDeliveryControllerProvider);
     final productData = await controller.getProductDetails(productId);
-    
+
     final productName = productData?['title'] ?? 'Unknown Product';
     _productCache[productId] = productName;
-    
+
     return productName;
   }
 
   @override
   Widget build(BuildContext context) {
-    final filteredDeliveriesAsync = ref.watch(filteredPendingDeliveriesProvider);
+    final filteredDeliveriesAsync = ref.watch(
+      filteredPendingDeliveriesProvider,
+    );
     final inflowOutflowAsync = ref.watch(inflowOutflowProvider);
     final controller = ref.watch(pendingDeliveryControllerProvider);
 
@@ -125,7 +128,10 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
               },
               decoration: InputDecoration(
                 hintText: 'Search by Order ID...',
-                prefixIcon: const Icon(Icons.search, color: MyColors.purpleShade),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: MyColors.purpleShade,
+                ),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear, color: Colors.grey),
@@ -147,7 +153,10 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: MyColors.purpleShade, width: 2),
+                  borderSide: const BorderSide(
+                    color: MyColors.purpleShade,
+                    width: 2,
+                  ),
                 ),
               ),
             ),
@@ -164,16 +173,16 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          searchQuery.isEmpty 
-                              ? Icons.local_shipping_outlined 
+                          searchQuery.isEmpty
+                              ? Icons.local_shipping_outlined
                               : Icons.search_off,
                           size: 80,
                           color: Colors.grey.shade300,
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          searchQuery.isEmpty 
-                              ? 'No Pending Deliveries' 
+                          searchQuery.isEmpty
+                              ? 'No Pending Deliveries'
                               : 'No Orders Found',
                           style: TextStyle(
                             fontSize: 18,
@@ -183,7 +192,7 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          searchQuery.isEmpty 
+                          searchQuery.isEmpty
                               ? 'All orders have been delivered'
                               : 'Try a different search term',
                           style: TextStyle(
@@ -203,20 +212,22 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
                     final order = orders[index];
                     final orderId = order['orderId'] as String;
                     final productId = order['productId'] as String? ?? '';
-                    final orderDate = (order['orderDate'] as Timestamp?)?.toDate() ?? DateTime.now();
+                    final orderDate =
+                        (order['orderDate'] as Timestamp?)?.toDate() ??
+                        DateTime.now();
                     final status = order['status'] as String? ?? 'paid';
-                    final last5Digits = orderId.length >= 5 
-                        ? orderId.substring(orderId.length - 5) 
+                    final first6Chars = orderId.length >= 6
+                        ? orderId.substring(0, 6)
                         : orderId;
-                    
+
                     return FutureBuilder<String>(
                       future: _getProductName(productId),
                       builder: (context, snapshot) {
                         final productName = snapshot.data ?? 'Loading...';
-                        
+
                         return DeliveryWidget(
                           productName: productName,
-                          orderId: last5Digits,
+                          orderId: first6Chars,
                           timestamp: orderDate,
                           status: status,
                           onItemDropped: () async {
@@ -269,7 +280,9 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Payment released - Order completed'),
+                                    content: Text(
+                                      'Payment released - Order completed',
+                                    ),
                                     backgroundColor: Colors.green,
                                   ),
                                 );
@@ -292,9 +305,7 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
                 );
               },
               loading: () => const Center(
-                child: CircularProgressIndicator(
-                  color: MyColors.purpleShade,
-                ),
+                child: CircularProgressIndicator(color: MyColors.purpleShade),
               ),
               error: (error, stack) => Center(
                 child: Column(
@@ -317,10 +328,7 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
                     const SizedBox(height: 8),
                     Text(
                       error.toString(),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.red,
-                      ),
+                      style: const TextStyle(fontSize: 14, color: Colors.red),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -345,10 +353,7 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -386,10 +391,7 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
           ),
           Text(
             subtitle,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
           ),
         ],
       ),
