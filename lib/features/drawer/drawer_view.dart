@@ -1,4 +1,5 @@
 import 'package:campus_mart_admin/core/utils/my_colors.dart';
+import 'package:campus_mart_admin/features/auth/controller/auth_controller.dart';
 import 'package:campus_mart_admin/features/drawer/allproducts/allproducts.dart';
 import 'package:campus_mart_admin/features/drawer/drawerCont.dart';
 import 'package:campus_mart_admin/features/drawer/history/history_screen.dart';
@@ -54,7 +55,7 @@ class DrawerView extends ConsumerWidget {
                   child: const Text(
                     'Campus Mart\nAdmin',
                     style: TextStyle(
-                      color: MyColors.warmGold,
+                      color: Colors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       height: 1.2,
@@ -97,6 +98,45 @@ class DrawerView extends ConsumerWidget {
                         title: 'History',
                         index: 3,
                         currentScreen: currentScreen,
+                      ),
+                      SizedBox(height: 50),
+                      FilledButton(
+                        style: FilledButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          minimumSize: Size(400, 30),
+                          backgroundColor: MyColors.purpleShade,
+                        ),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text('Logout'),
+                              content: Text('Are you sure you want to logout?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    ref
+                                        .read(authControllerProvider.notifier)
+                                        .signout();
+                                    Navigator.pop(context);
+                                  },
+
+                                  child: Text(
+                                    'Logout',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        child: Text('Log out'),
                       ),
                     ],
                   ),

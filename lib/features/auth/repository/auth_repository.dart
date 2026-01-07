@@ -34,7 +34,7 @@ class AuthRepository {
       final user = User.fromMap(userdata);
       if (user.userType != UserType.admin) {
         await firebaseAuth.signOut();
-        throw Exception('Unauthorized access. Admins only.');
+        throw Exception('Access Denied: Only accounts with admin privileges can access the Admin Panel. Your account does not have admin access.');
       }
       return user;
     } on FirebaseAuthException catch (e) {

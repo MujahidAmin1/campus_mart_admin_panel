@@ -1,13 +1,12 @@
-
 import 'package:campus_mart_admin/core/providers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final pendingRepo = Provider((ref){
+final pendingRepo = Provider((ref) {
   return PendingDeliveryRepo(
-firebaseAuth: ref.watch(firebaseAuthProvider),
-firestore: ref.watch(firestoreProvider),
+    firebaseAuth: ref.watch(firebaseAuthProvider),
+    firestore: ref.watch(firestoreProvider),
   );
 });
 
@@ -26,12 +25,12 @@ class PendingDeliveryRepo {
           .where('status', whereIn: ['paid', 'shipped', 'collected'])
           .snapshots()
           .map((snapshot) {
-        return snapshot.docs.map((doc) {
-          final data = doc.data();
-          data['orderId'] = doc.id; // Ensure orderId is included
-          return data;
-        }).toList();
-      });
+            return snapshot.docs.map((doc) {
+              final data = doc.data();
+              data['orderId'] = doc.id; // Ensure orderId is included
+              return data;
+            }).toList();
+          });
     } catch (e) {
       throw Exception('Error fetching pending deliveries: $e');
     }
@@ -55,10 +54,7 @@ class PendingDeliveryRepo {
   /// Outflow: Total amount of completed orders (payment released to sellers)
   Stream<Map<String, double>> fetchInflowOutflow() {
     try {
-      return firestore
-          .collection('orders')
-          .snapshots()
-          .map((snapshot) {
+      return firestore.collection('orders').snapshots().map((snapshot) {
         double inflow = 0.0;
         double outflow = 0.0;
 
@@ -68,7 +64,10 @@ class PendingDeliveryRepo {
           final amount = (data['amount'] as num?)?.toDouble() ?? 0.0;
 
           // Inflow: all orders that have been paid
-          if (status == 'paid' || status == 'shipped' || status == 'collected' || status == 'completed') {
+          if (status == 'paid' ||
+              status == 'shipped' ||
+              status == 'collected' ||
+              status == 'completed') {
             inflow += amount;
           }
 
@@ -124,5 +123,13 @@ class PendingDeliveryRepo {
     } catch (e) {
       throw Exception('Error releasing payment: $e');
     }
+  }
+  Future<void> cancelOrder(String orderId)async{
+    try {
+      await firestore.collection('orders').doc(orderId).delete();
+    } catch (e) {
+      throw Exception('Error cancelling order');
+    }
+
   }
 }

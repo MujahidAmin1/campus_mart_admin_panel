@@ -298,6 +298,9 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
                               }
                             }
                           },
+                          onCancelOrder: () async {
+                            await controller.cancelOrder(orderId);
+                          },
                         );
                       },
                     );

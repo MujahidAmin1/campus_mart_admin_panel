@@ -9,6 +9,7 @@ class DeliveryWidget extends StatelessWidget {
   final VoidCallback onItemDropped;
   final VoidCallback onItemCollected;
   final VoidCallback onPaymentReleased;
+  final VoidCallback onCancelOrder;
 
   const DeliveryWidget({
     super.key,
@@ -19,6 +20,7 @@ class DeliveryWidget extends StatelessWidget {
     required this.onItemDropped,
     required this.onItemCollected,
     required this.onPaymentReleased,
+    required this.onCancelOrder,
   });
 
   @override
@@ -184,6 +186,34 @@ class DeliveryWidget extends StatelessWidget {
                   disabledForegroundColor: Colors.grey.shade400,
                 ),
               ),
+              IconButton(
+                onPressed: (){
+                  showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text('Logout'),
+                        content: Text('Are you sure you want to cancel order?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text('back'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              onCancelOrder;
+                              Navigator.pop(context);
+                            },
+                            child: Text(
+                              'Cancel order',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                }, 
+                icon: Icon(Icons.cancel)
+                )
             ],
           ),
         ],
