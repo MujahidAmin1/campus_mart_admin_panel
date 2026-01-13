@@ -91,10 +91,39 @@ class PendingDeliveryRepo {
   /// Update order status to "shipped" when seller drops/delivers the item
   Future<void> updateStatusToDropped(String orderId) async {
     try {
+      // Fetch order data to get buyerId and productId
+      final orderDoc = await firestore.collection('orders').doc(orderId).get();
+      final orderData = orderDoc.data();
+      
       await firestore.collection('orders').doc(orderId).update({
         'status': 'shipped',
         'isShippingConfirmed': true,
       });
+
+      // Create notification for the buyer
+      if (orderData != null) {
+        final buyerId = orderData['buyerId'] as String?;
+        final productId = orderData['productId'] as String?;
+        
+        if (buyerId != null && productId != null) {
+          // Fetch product name
+          final productData = await fetchProductById(productId);
+          final productTitle = productData?['title'] ?? 'your item';
+          
+          await firestore
+              .collection('users')
+              .doc(buyerId)
+              .collection('notifications')
+              .add({
+            'title': 'Order Shipped',
+            'body': 'Your order for "$productTitle" has been shipped and is ready for pickup.',
+            'isRead': false,
+            'createdAt': Timestamp.now(),
+            'type': 'order_update',
+            'relatedId': orderId,
+          });
+        }
+      }
     } catch (e) {
       throw Exception('Error updating order to shipped: $e');
     }
@@ -103,11 +132,40 @@ class PendingDeliveryRepo {
   /// Update order status to "collected" when buyer picks up the item
   Future<void> updateStatusToCollected(String orderId) async {
     try {
+      // Fetch order data to get sellerId and productId
+      final orderDoc = await firestore.collection('orders').doc(orderId).get();
+      final orderData = orderDoc.data();
+      
       await firestore.collection('orders').doc(orderId).update({
         'status': 'collected',
         'hasCollectedItem': true,
         'recievedAt': Timestamp.now(),
       });
+
+      // Create notification for the seller
+      if (orderData != null) {
+        final sellerId = orderData['sellerId'] as String?;
+        final productId = orderData['productId'] as String?;
+        
+        if (sellerId != null && productId != null) {
+          // Fetch product name
+          final productData = await fetchProductById(productId);
+          final productTitle = productData?['title'] ?? 'your item';
+          
+          await firestore
+              .collection('users')
+              .doc(sellerId)
+              .collection('notifications')
+              .add({
+            'title': 'Item Collected',
+            'body': 'Your item "$productTitle" has been collected by the buyer.',
+            'isRead': false,
+            'createdAt': Timestamp.now(),
+            'type': 'order_update',
+            'relatedId': orderId,
+          });
+        }
+      }
     } catch (e) {
       throw Exception('Error updating order to collected: $e');
     }
@@ -116,10 +174,39 @@ class PendingDeliveryRepo {
   /// Release payment to seller - marks order as completed
   Future<void> releasePayment(String orderId) async {
     try {
+      // Fetch order data to get sellerId and productId
+      final orderDoc = await firestore.collection('orders').doc(orderId).get();
+      final orderData = orderDoc.data();
+      
       await firestore.collection('orders').doc(orderId).update({
         'status': 'completed',
         'completedAt': Timestamp.now(),
       });
+
+      // Create notification for the seller
+      if (orderData != null) {
+        final sellerId = orderData['sellerId'] as String?;
+        final productId = orderData['productId'] as String?;
+        
+        if (sellerId != null && productId != null) {
+          // Fetch product name
+          final productData = await fetchProductById(productId);
+          final productTitle = productData?['title'] ?? 'your item';
+          
+          await firestore
+              .collection('users')
+              .doc(sellerId)
+              .collection('notifications')
+              .add({
+            'title': 'Payment Released',
+            'body': 'Payment for "$productTitle" has been released to your account.',
+            'isRead': false,
+            'createdAt': Timestamp.now(),
+            'type': 'order_update',
+            'relatedId': orderId,
+          });
+        }
+      }
     } catch (e) {
       throw Exception('Error releasing payment: $e');
     }
