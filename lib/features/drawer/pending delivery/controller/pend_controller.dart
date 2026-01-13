@@ -43,21 +43,22 @@ class PendingDeliveryController {
 
   PendingDeliveryController(this.repo);
 
-  Future<void> markAsDropped(String orderId) async {
-    await repo.updateStatusToDropped(orderId);
+  Future<void> markAsDropped(String orderId, {Map<String, dynamic>? orderData}) async {
+    await repo.updateStatusToDropped(orderId, orderData: orderData);
   }
 
-  Future<void> markAsCollected(String orderId) async {
-    await repo.updateStatusToCollected(orderId);
+  Future<void> markAsCollected(String orderId, {Map<String, dynamic>? orderData}) async {
+    await repo.updateStatusToCollected(orderId, orderData: orderData);
   }
 
-  Future<void> releasePayment(String orderId) async {
-    await repo.releasePayment(orderId);
+  Future<void> releasePayment(String orderId, {Map<String, dynamic>? orderData}) async {
+    await repo.releasePayment(orderId, orderData: orderData);
   }
 
   Future<Map<String, dynamic>?> getProductDetails(String productId) async {
     return await repo.fetchProductById(productId);
   }
+  
   Future<void> cancelOrder(String orderId) async {
     await repo.cancelOrder(orderId);
   }

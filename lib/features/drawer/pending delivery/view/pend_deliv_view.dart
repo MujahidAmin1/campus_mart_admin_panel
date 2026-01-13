@@ -232,7 +232,7 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
                           status: status,
                           onItemDropped: () async {
                             try {
-                              await controller.markAsDropped(orderId);
+                              await controller.markAsDropped(orderId, orderData: order);
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
@@ -254,7 +254,7 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
                           },
                           onItemCollected: () async {
                             try {
-                              await controller.markAsCollected(orderId);
+                              await controller.markAsCollected(orderId, orderData: order);
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
@@ -276,7 +276,7 @@ class _PendingDeliveryViewState extends ConsumerState<PendingDeliveryView> {
                           },
                           onPaymentReleased: () async {
                             try {
-                              await controller.releasePayment(orderId);
+                              await controller.releasePayment(orderId, orderData: order);
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(

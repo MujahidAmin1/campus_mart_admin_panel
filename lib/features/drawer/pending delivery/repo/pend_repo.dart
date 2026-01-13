@@ -88,13 +88,31 @@ class PendingDeliveryRepo {
     }
   }
 
+  /// Private helper method to create a notification for a user
+  Future<void> _createNotification({
+    required String userId,
+    required String title,
+    required String body,
+    required String orderId,
+  }) async {
+    await firestore
+        .collection('users')
+        .doc(userId)
+        .collection('notifications')
+        .add({
+      'title': title,
+      'body': body,
+      'isRead': false,
+      'createdAt': Timestamp.now(),
+      'type': 'order_update',
+      'relatedId': orderId,
+    });
+  }
+
   /// Update order status to "shipped" when seller drops/delivers the item
-  Future<void> updateStatusToDropped(String orderId) async {
+  /// Pass orderData from the view to avoid extra Firestore read
+  Future<void> updateStatusToDropped(String orderId, {Map<String, dynamic>? orderData}) async {
     try {
-      // Fetch order data to get buyerId and productId
-      final orderDoc = await firestore.collection('orders').doc(orderId).get();
-      final orderData = orderDoc.data();
-      
       await firestore.collection('orders').doc(orderId).update({
         'status': 'shipped',
         'isShippingConfirmed': true,
@@ -106,22 +124,15 @@ class PendingDeliveryRepo {
         final productId = orderData['productId'] as String?;
         
         if (buyerId != null && productId != null) {
-          // Fetch product name
           final productData = await fetchProductById(productId);
           final productTitle = productData?['title'] ?? 'your item';
           
-          await firestore
-              .collection('users')
-              .doc(buyerId)
-              .collection('notifications')
-              .add({
-            'title': 'Order Shipped',
-            'body': 'Your order for "$productTitle" has been shipped and is ready for pickup.',
-            'isRead': false,
-            'createdAt': Timestamp.now(),
-            'type': 'order_update',
-            'relatedId': orderId,
-          });
+          await _createNotification(
+            userId: buyerId,
+            title: 'Order Shipped',
+            body: 'Your order for "$productTitle" has been shipped and is ready for pickup.',
+            orderId: orderId,
+          );
         }
       }
     } catch (e) {
@@ -130,12 +141,9 @@ class PendingDeliveryRepo {
   }
 
   /// Update order status to "collected" when buyer picks up the item
-  Future<void> updateStatusToCollected(String orderId) async {
+  /// Pass orderData from the view to avoid extra Firestore read
+  Future<void> updateStatusToCollected(String orderId, {Map<String, dynamic>? orderData}) async {
     try {
-      // Fetch order data to get sellerId and productId
-      final orderDoc = await firestore.collection('orders').doc(orderId).get();
-      final orderData = orderDoc.data();
-      
       await firestore.collection('orders').doc(orderId).update({
         'status': 'collected',
         'hasCollectedItem': true,
@@ -148,22 +156,15 @@ class PendingDeliveryRepo {
         final productId = orderData['productId'] as String?;
         
         if (sellerId != null && productId != null) {
-          // Fetch product name
           final productData = await fetchProductById(productId);
           final productTitle = productData?['title'] ?? 'your item';
           
-          await firestore
-              .collection('users')
-              .doc(sellerId)
-              .collection('notifications')
-              .add({
-            'title': 'Item Collected',
-            'body': 'Your item "$productTitle" has been collected by the buyer.',
-            'isRead': false,
-            'createdAt': Timestamp.now(),
-            'type': 'order_update',
-            'relatedId': orderId,
-          });
+          await _createNotification(
+            userId: sellerId,
+            title: 'Item Collected',
+            body: 'Your item "$productTitle" has been collected by the buyer.',
+            orderId: orderId,
+          );
         }
       }
     } catch (e) {
@@ -172,12 +173,9 @@ class PendingDeliveryRepo {
   }
 
   /// Release payment to seller - marks order as completed
-  Future<void> releasePayment(String orderId) async {
+  /// Pass orderData from the view to avoid extra Firestore read
+  Future<void> releasePayment(String orderId, {Map<String, dynamic>? orderData}) async {
     try {
-      // Fetch order data to get sellerId and productId
-      final orderDoc = await firestore.collection('orders').doc(orderId).get();
-      final orderData = orderDoc.data();
-      
       await firestore.collection('orders').doc(orderId).update({
         'status': 'completed',
         'completedAt': Timestamp.now(),
@@ -189,34 +187,27 @@ class PendingDeliveryRepo {
         final productId = orderData['productId'] as String?;
         
         if (sellerId != null && productId != null) {
-          // Fetch product name
           final productData = await fetchProductById(productId);
           final productTitle = productData?['title'] ?? 'your item';
           
-          await firestore
-              .collection('users')
-              .doc(sellerId)
-              .collection('notifications')
-              .add({
-            'title': 'Payment Released',
-            'body': 'Payment for "$productTitle" has been released to your account.',
-            'isRead': false,
-            'createdAt': Timestamp.now(),
-            'type': 'order_update',
-            'relatedId': orderId,
-          });
+          await _createNotification(
+            userId: sellerId,
+            title: 'Payment Released',
+            body: 'Payment for "$productTitle" has been released to your account.',
+            orderId: orderId,
+          );
         }
       }
     } catch (e) {
       throw Exception('Error releasing payment: $e');
     }
   }
-  Future<void> cancelOrder(String orderId)async{
+
+  Future<void> cancelOrder(String orderId) async {
     try {
       await firestore.collection('orders').doc(orderId).delete();
     } catch (e) {
       throw Exception('Error cancelling order');
     }
-
   }
 }
