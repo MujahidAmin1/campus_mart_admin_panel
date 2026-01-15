@@ -59,8 +59,8 @@ class PendingDeliveryController {
     return await repo.fetchProductById(productId);
   }
   
-  Future<void> cancelOrder(String orderId) async {
-    await repo.cancelOrder(orderId);
+  Future<void> cancelOrder(String orderId, {Map<String, dynamic>? orderData}) async {
+    await repo.cancelOrder(orderId, orderData: orderData);
   }
 }
 

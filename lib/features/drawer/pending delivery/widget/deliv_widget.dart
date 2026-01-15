@@ -191,20 +191,20 @@ class DeliveryWidget extends StatelessWidget {
                   showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: Text('Logout'),
-                        content: Text('Are you sure you want to cancel order?'),
+                        title: const Text('Cancel Order'),
+                        content: const Text('Are you sure you want to cancel this order? This action cannot be undone.'),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context),
-                            child: Text('back'),
+                            child: const Text('Back'),
                           ),
                           TextButton(
                             onPressed: () {
-                              onCancelOrder;
                               Navigator.pop(context);
+                              onCancelOrder();
                             },
-                            child: Text(
-                              'Cancel order',
+                            child: const Text(
+                              'Cancel Order',
                               style: TextStyle(color: Colors.red),
                             ),
                           ),
@@ -212,7 +212,7 @@ class DeliveryWidget extends StatelessWidget {
                       ),
                     );
                 }, 
-                icon: Icon(Icons.cancel)
+                icon: const Icon(Icons.cancel, color: Colors.red)
                 )
             ],
           ),

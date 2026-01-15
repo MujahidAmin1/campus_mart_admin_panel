@@ -1,105 +1,70 @@
 import 'package:campus_mart_admin/core/providers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final pendingRepo = Provider((ref) {
-  return PendingDeliveryRepo(
-    firebaseAuth: ref.watch(firebaseAuthProvider),
-    firestore: ref.watch(firestoreProvider),
-  );
+  return PendingDeliveryRepo(firestore: ref.watch(firestoreProvider));
 });
 
 class PendingDeliveryRepo {
   final FirebaseFirestore firestore;
-  final FirebaseAuth firebaseAuth;
 
-  PendingDeliveryRepo({required this.firestore, required this.firebaseAuth});
+  PendingDeliveryRepo({required this.firestore});
 
-  /// Fetch all orders with "paid", "shipped", or "collected" status (admin panel - pending deliveries)
-  /// Orders remain visible until payment is released (status becomes "completed")
+  /// Fetch all orders with "paid", "shipped", or "collected" status
   Stream<List<Map<String, dynamic>>> fetchPendingDeliveries() {
-    try {
-      return firestore
-          .collection('orders')
-          .where('status', whereIn: ['paid', 'shipped', 'collected'])
-          .snapshots()
-          .map((snapshot) {
-            return snapshot.docs.map((doc) {
+    return firestore
+        .collection('orders')
+        .where('status', whereIn: ['paid', 'shipped', 'collected'])
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) {
               final data = doc.data();
-              data['orderId'] = doc.id; // Ensure orderId is included
+              data['orderId'] = doc.id;
               return data;
-            }).toList();
-          });
-    } catch (e) {
-      throw Exception('Error fetching pending deliveries: $e');
-    }
+            }).toList());
   }
 
   /// Fetch product details by productId
   Future<Map<String, dynamic>?> fetchProductById(String productId) async {
-    try {
-      final doc = await firestore.collection('products').doc(productId).get();
-      if (doc.exists) {
-        return doc.data();
-      }
-      return null;
-    } catch (e) {
-      throw Exception('Error fetching product: $e');
-    }
+    final doc = await firestore.collection('products').doc(productId).get();
+    return doc.data();
   }
 
   /// Fetch inflow and outflow statistics
-  /// Inflow: Total amount of all paid orders (paid, shipped, collected, completed)
-  /// Outflow: Total amount of completed orders (payment released to sellers)
   Stream<Map<String, double>> fetchInflowOutflow() {
-    try {
-      return firestore.collection('orders').snapshots().map((snapshot) {
-        double inflow = 0.0;
-        double outflow = 0.0;
+    return firestore.collection('orders').snapshots().map((snapshot) {
+      double inflow = 0.0;
+      double outflow = 0.0;
 
-        for (var doc in snapshot.docs) {
-          final data = doc.data();
-          final status = data['status'] as String?;
-          final amount = (data['amount'] as num?)?.toDouble() ?? 0.0;
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final status = data['status'] as String?;
+        final amount = (data['amount'] as num?)?.toDouble() ?? 0.0;
 
-          // Inflow: all orders that have been paid
-          if (status == 'paid' ||
-              status == 'shipped' ||
-              status == 'collected' ||
-              status == 'completed') {
-            inflow += amount;
-          }
-
-          // Outflow: only completed orders (payment released)
-          if (status == 'completed') {
-            outflow += amount;
-          }
+        if (['paid', 'shipped', 'collected', 'completed'].contains(status)) {
+          inflow += amount;
         }
+        if (status == 'completed') {
+          outflow += amount;
+        }
+      }
 
-        return {
-          'inflow': inflow,
-          'outflow': outflow,
-          'pending': inflow - outflow,
-        };
-      });
-    } catch (e) {
-      throw Exception('Error fetching inflow/outflow: $e');
-    }
+      return {'inflow': inflow, 'outflow': outflow, 'pending': inflow - outflow};
+    });
   }
 
-  /// Private helper method to create a notification for a user
-  Future<void> _createNotification({
-    required String userId,
-    required String title,
-    required String body,
-    required String orderId,
-  }) async {
-    await firestore
-        .collection('users')
-        .doc(userId)
-        .collection('notifications')
-        .add({
+  /// Helper to get product title from orderData
+  Future<String> _getProductTitle(Map<String, dynamic>? orderData) async {
+    final productId = orderData?['productId'] as String?;
+    if (productId == null) return 'your item';
+    final productData = await fetchProductById(productId);
+    return productData?['title'] ?? 'your item';
+  }
+
+  /// Create a notification for a user
+  Future<void> _notify(String? userId, String title, String body, String orderId) async {
+    if (userId == null) return;
+    await firestore.collection('users').doc(userId).collection('notifications').add({
       'title': title,
       'body': body,
       'isRead': false,
@@ -109,105 +74,86 @@ class PendingDeliveryRepo {
     });
   }
 
-  /// Update order status to "shipped" when seller drops/delivers the item
-  /// Pass orderData from the view to avoid extra Firestore read
+  /// Update order status to "shipped"
   Future<void> updateStatusToDropped(String orderId, {Map<String, dynamic>? orderData}) async {
-    try {
-      await firestore.collection('orders').doc(orderId).update({
-        'status': 'shipped',
-        'isShippingConfirmed': true,
-      });
+    await firestore.collection('orders').doc(orderId).update({
+      'status': 'shipped',
+      'isShippingConfirmed': true,
+    });
 
-      // Create notification for the buyer
-      if (orderData != null) {
-        final buyerId = orderData['buyerId'] as String?;
-        final productId = orderData['productId'] as String?;
-        
-        if (buyerId != null && productId != null) {
-          final productData = await fetchProductById(productId);
-          final productTitle = productData?['title'] ?? 'your item';
-          
-          await _createNotification(
-            userId: buyerId,
-            title: 'Order Shipped',
-            body: 'Your order for "$productTitle" has been shipped and is ready for pickup.',
-            orderId: orderId,
-          );
-        }
-      }
-    } catch (e) {
-      throw Exception('Error updating order to shipped: $e');
+    if (orderData != null) {
+      final title = await _getProductTitle(orderData);
+      await _notify(
+        orderData['buyerId'],
+        'Order Shipped',
+        'Your order for "$title" has been shipped and is ready for pickup.',
+        orderId,
+      );
     }
   }
 
-  /// Update order status to "collected" when buyer picks up the item
-  /// Pass orderData from the view to avoid extra Firestore read
+  /// Update order status to "collected"
   Future<void> updateStatusToCollected(String orderId, {Map<String, dynamic>? orderData}) async {
-    try {
-      await firestore.collection('orders').doc(orderId).update({
-        'status': 'collected',
-        'hasCollectedItem': true,
-        'recievedAt': Timestamp.now(),
-      });
+    await firestore.collection('orders').doc(orderId).update({
+      'status': 'collected',
+      'hasCollectedItem': true,
+      'recievedAt': Timestamp.now(),
+    });
 
-      // Create notification for the seller
-      if (orderData != null) {
-        final sellerId = orderData['sellerId'] as String?;
-        final productId = orderData['productId'] as String?;
-        
-        if (sellerId != null && productId != null) {
-          final productData = await fetchProductById(productId);
-          final productTitle = productData?['title'] ?? 'your item';
-          
-          await _createNotification(
-            userId: sellerId,
-            title: 'Item Collected',
-            body: 'Your item "$productTitle" has been collected by the buyer.',
-            orderId: orderId,
-          );
-        }
-      }
-    } catch (e) {
-      throw Exception('Error updating order to collected: $e');
+    if (orderData != null) {
+      final title = await _getProductTitle(orderData);
+      await _notify(
+        orderData['sellerId'],
+        'Item Collected',
+        'Your item "$title" has been collected by the buyer.',
+        orderId,
+      );
     }
   }
 
-  /// Release payment to seller - marks order as completed
-  /// Pass orderData from the view to avoid extra Firestore read
+  /// Release payment to seller - marks order as completed and product as unavailable
   Future<void> releasePayment(String orderId, {Map<String, dynamic>? orderData}) async {
-    try {
-      await firestore.collection('orders').doc(orderId).update({
-        'status': 'completed',
-        'completedAt': Timestamp.now(),
-      });
+    await firestore.collection('orders').doc(orderId).update({
+      'status': 'completed',
+      'completedAt': Timestamp.now(),
+    });
 
-      // Create notification for the seller
-      if (orderData != null) {
-        final sellerId = orderData['sellerId'] as String?;
-        final productId = orderData['productId'] as String?;
-        
-        if (sellerId != null && productId != null) {
-          final productData = await fetchProductById(productId);
-          final productTitle = productData?['title'] ?? 'your item';
-          
-          await _createNotification(
-            userId: sellerId,
-            title: 'Payment Released',
-            body: 'Payment for "$productTitle" has been released to your account.',
-            orderId: orderId,
-          );
-        }
+    if (orderData != null) {
+      // Mark product as unavailable (sold)
+      final productId = orderData['productId'] as String?;
+      if (productId != null) {
+        await firestore.collection('products').doc(productId).update({
+          'isAvailable': false,
+        });
       }
-    } catch (e) {
-      throw Exception('Error releasing payment: $e');
+
+      final title = await _getProductTitle(orderData);
+      await _notify(
+        orderData['sellerId'],
+        'Payment Released',
+        'Payment for "$title" has been released to your account.',
+        orderId,
+      );
     }
   }
 
-  Future<void> cancelOrder(String orderId) async {
-    try {
-      await firestore.collection('orders').doc(orderId).delete();
-    } catch (e) {
-      throw Exception('Error cancelling order');
+  /// Cancel an order - notifies buyer and seller, then deletes order
+  Future<void> cancelOrder(String orderId, {Map<String, dynamic>? orderData}) async {
+    if (orderData != null) {
+      final title = await _getProductTitle(orderData);
+      await _notify(
+        orderData['buyerId'],
+        'Order Cancelled',
+        'Your order for "$title" has been cancelled by the admin.',
+        orderId,
+      );
+      await _notify(
+        orderData['sellerId'],
+        'Order Cancelled',
+        'The order for "$title" has been cancelled by the admin.',
+        orderId,
+      );
     }
+    await firestore.collection('orders').doc(orderId).delete();
   }
 }
